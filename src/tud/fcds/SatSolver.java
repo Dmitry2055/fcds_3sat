@@ -2,15 +2,30 @@ package tud.fcds;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveTask;
 
 /**
  * Created by dmitr on 6/27/2016.
  */
-public class SatSolver {
+public class SatSolver extends RecursiveTask<Long> {
 
     private static final int SIZE_CONST = 3;
-    private int nClauses;
+    private static final long SEQUENTIAL_THRESHOLD = 65_536;
+    private static int nClauses;
+    private long start;
+    private long end;
+    private static int nVar;
+    private static short[][] clauses;
+
+
+    public SatSolver(long start, long end) {
+        this.start = start;
+        this.end = end;
+    }
 
     public int getnVar() {
         return nVar;
@@ -19,9 +34,6 @@ public class SatSolver {
     public int getnClauses() {
         return nClauses;
     }
-
-    private int nVar;
-    private short[][] clauses;
 
 
     // Solves the 3-SAT system using an exaustive search
@@ -36,12 +48,11 @@ public class SatSolver {
         for (i = 0; i < nVar; i++)
             iVar[i] = (int) Math.pow(2, i);
 
-        long maxNumber = (long) Math.pow(2, nVar);
         long number;
         short var;
         int c;
 
-        for (number = 0; number < maxNumber; number++) {
+        for (number = start; number < end; number++) {
 
             for (c = 0; c < nClauses; c++) {
 
@@ -79,7 +90,7 @@ public class SatSolver {
 // Each element of the caluse vector may contain values selected from:
 // k = -nVar, ..., -2, -1, 1, 2, ..., nVar. The value of k represents the index of the variable.
 // A negative value remains the negation of the variable.
-    void readClauses() {
+    private static void readClauses() {
 
 
         try {
@@ -112,5 +123,66 @@ public class SatSolver {
             e.printStackTrace();
         }
 
+    }
+
+    public static long solveSat(){
+        readClauses();  //  get the data from a file
+        long maxNumber = (long) Math.pow(2, nVar);  //  get initial max number
+        SatSolver solver = new SatSolver(0, maxNumber); //  initial conditions
+        ForkJoinPool pool = new ForkJoinPool();
+        long solution = pool.invoke(solver);
+
+        int i;
+        if (solution >= 0) {
+            System.out.printf("Solution found [%d]: ", solution);
+            for (i = 0; i < nVar; i++)
+                System.out.printf("%d ", (int) ((solution & (long) Math.pow(2,i)) / Math.pow(2, i)));
+            System.out.printf("\n");
+        } else
+            System.out.printf("Solution not found.\n");
+
+
+        return solution;
+    }
+
+    @Override
+    protected Long compute() {
+
+        if (end - start < SEQUENTIAL_THRESHOLD){
+            //  do sequential
+            return solveClauses();
+        }
+        else{
+            // fork
+            List<SatSolver> tasks = new ArrayList<>();    //  task pool
+            long chunkSize = SEQUENTIAL_THRESHOLD;  //  size of one task
+
+//  fork tasks
+            for (long i = start; i < end; i += chunkSize){
+                long newStart = i;
+                long newEnd = Math.min(i + SEQUENTIAL_THRESHOLD - 1, end);
+                SatSolver task = new SatSolver(newStart, newEnd);
+                task.fork();
+                tasks.add(task);
+            }
+//  join tasks
+            long joinedRes = 0;
+            for (SatSolver t :
+                    tasks) {
+                joinedRes = merge(joinedRes, t.join());
+            }
+
+            return  joinedRes > 0 ? joinedRes : -1;
+        }
+
+
+    }
+
+
+    private long merge(long left, long right) {
+        if (right == -1)    //  which means no solution found
+            return left;
+        else
+            return left | right;
     }
 }
