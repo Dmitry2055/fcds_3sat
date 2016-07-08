@@ -117,10 +117,14 @@ public class SatSolver extends RecursiveTask<Long> {
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
+            System.out.println("File not found");
+            System.exit(-1);
         }
         catch (Exception e)
         {
             e.printStackTrace();
+            System.out.println("Error reading file");
+            System.exit(-2);
         }
 
     }
