@@ -152,8 +152,8 @@ public class SatSolver extends RecursiveTask<Long> {
     @Override
     protected Long compute() {
 
-//        if (end - start < SEQUENTIAL_THRESHOLD){
-        if (true){    //  for 1 thread
+        if (end - start < SEQUENTIAL_THRESHOLD){
+//        if (true){    //  for 1 thread
             //  do sequential
             return solveClauses();
         }
