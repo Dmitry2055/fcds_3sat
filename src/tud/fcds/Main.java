@@ -4,8 +4,13 @@ public class Main {
 
     public static void main(String[] args) {
 
+        Stopwatch swMain = new Stopwatch("main");
+        swMain.start();
+
         long solution = SatSolver.solveSat();
 
+        swMain.stop();
+        System.out.println(swMain.getInfoMsg());
 //        int i;
 //        if (solution >= 0) {
 //            System.out.printf("Solution found [%d]: ", solution);
