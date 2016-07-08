@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="fcds_3sat:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/fcds_3sat_jar</output-path>
+    <root id="archive" name="fcds_3sat.jar">
+      <element id="module-output" name="fcds_3sat" />
+    </root>
+  </artifact>
+</component>

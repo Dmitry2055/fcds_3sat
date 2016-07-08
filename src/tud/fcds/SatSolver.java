@@ -90,12 +90,12 @@ public class SatSolver extends RecursiveTask<Long> {
 // Each element of the caluse vector may contain values selected from:
 // k = -nVar, ..., -2, -1, 1, 2, ..., nVar. The value of k represents the index of the variable.
 // A negative value remains the negation of the variable.
-    private static void readClauses() {
+    private static void readClauses(String file) {
 
 
         try {
             Scanner input = null;
-            input = new Scanner(new File("src/input.txt"));
+            input = new Scanner(new File(file));
 
             nClauses = input.nextShort();   //  get the number of clauses
             nVar = input.nextShort();       //  and variables
@@ -129,8 +129,8 @@ public class SatSolver extends RecursiveTask<Long> {
 
     }
 
-    public static long solveSat(){
-        readClauses();  //  get the data from a file
+    public static long solveSat(String file){
+        readClauses(file);  //  get the data from a file
         long maxNumber = (long) Math.pow(2, nVar);  //  get initial max number
         SatSolver solver = new SatSolver(0, maxNumber); //  initial conditions
         ForkJoinPool pool = new ForkJoinPool();
@@ -185,11 +185,4 @@ public class SatSolver extends RecursiveTask<Long> {
 
     }
 
-
-    private long merge(long left, long right) {
-        if (right == -1)    //  which means no solution found
-            return left;
-        else
-            return left | right;
-    }
 }
